@@ -96,12 +96,13 @@ async fn dsek_oauth_callback(
         .map_err(from_server)?;
 
     let discord_username = storage::fetch_discord_username(&data.db, &discord_user_id).await?;
+
     storage::store_dsek_user(&data.db, &dsek_user).await?;
     storage::connect_users(&data.db, &discord_user_id, &dsek_user.stil_id).await?;
     discord::update_metadata(&data, &discord_user_id).await?;
 
     Ok(HttpResponse::Ok().body(format!(
-        "Successfully linked Discord account ({}) with Dsek account ({}). You may return to discord and close this tab.", 
+        "Successfully linked Discord account ({}) with Dsek account ({}). You may return to Discord and close this tab.", 
         discord_username, 
         dsek_user.stil_id
     )))

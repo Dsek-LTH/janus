@@ -4,7 +4,7 @@ use serde_json::json;
 #[tokio::main]
 pub async fn start() {
     let client_id = env::var("DISCORD_CLIENT_ID");
-    let token = env::var("BOT_TOKEN");
+    let token = env::var("DISCORD_BOT_TOKEN");
 
     let metadata = json!({});
 

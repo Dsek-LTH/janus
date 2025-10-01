@@ -1,7 +1,11 @@
 use actix_web::Result;
 use sqlx::{Pool, Sqlite};
 
-use crate::{discord::{DiscordOAuthCredentials, DiscordUserData}, dsek::DsekUserData, server::from_server};
+use crate::{
+    discord::{DiscordOAuthCredentials, DiscordUserData},
+    dsek::DsekUserData,
+    server::from_server,
+};
 
 pub async fn fetch_dsek_username(db: &Pool<Sqlite>, user_id: &str) -> Result<String> {
     let res = sqlx::query!(
@@ -11,7 +15,8 @@ pub async fn fetch_dsek_username(db: &Pool<Sqlite>, user_id: &str) -> Result<Str
         user_id
     )
     .fetch_one(db)
-    .await.map_err(from_server)?;
+    .await
+    .map_err(from_server)?;
 
     Ok(res.stil_id)
 }
@@ -25,12 +30,17 @@ pub async fn get_token(db: &Pool<Sqlite>, user_id: &str) -> Result<DiscordOAuthC
         user_id
     )
     .fetch_one(db)
-    .await.map_err(from_server)?;
+    .await
+    .map_err(from_server)?;
 
     Ok(res)
 }
 
-pub async fn store_discord_token(db: &Pool<Sqlite>, user_id: &str, oauth: DiscordOAuthCredentials) -> Result<()> {
+pub async fn store_discord_token(
+    db: &Pool<Sqlite>,
+    user_id: &str,
+    oauth: DiscordOAuthCredentials,
+) -> Result<()> {
     sqlx::query!(
         "INSERT OR REPLACE INTO discord_tokens (user_id, access_token, refresh_token, expires_at) 
         VALUES (?, ?, ?, ?)",
@@ -40,7 +50,8 @@ pub async fn store_discord_token(db: &Pool<Sqlite>, user_id: &str, oauth: Discor
         oauth.expires_at
     )
     .execute(db)
-    .await.map_err(from_server)?;
+    .await
+    .map_err(from_server)?;
 
     Ok(())
 }
@@ -53,7 +64,8 @@ pub async fn store_discord_user(db: &Pool<Sqlite>, user_data: &DiscordUserData) 
         user_data.username
     )
     .execute(db)
-    .await.map_err(from_server)?;
+    .await
+    .map_err(from_server)?;
 
     Ok(())
 }
@@ -66,7 +78,8 @@ pub async fn store_dsek_user(db: &Pool<Sqlite>, user_data: &DsekUserData) -> Res
         user_data.name
     )
     .execute(db)
-    .await.map_err(from_server)?;
+    .await
+    .map_err(from_server)?;
 
     Ok(())
 }
@@ -79,8 +92,9 @@ pub async fn connect_users(db: &Pool<Sqlite>, user_id: &str, stil_id: &str) -> R
         stil_id
     )
     .execute(db)
-    .await.map_err(from_server)?;
-    
+    .await
+    .map_err(from_server)?;
+
     Ok(())
 }
 

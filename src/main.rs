@@ -1,11 +1,11 @@
 use clap::Parser;
 
+mod discord;
+mod dsek;
+mod env;
 mod register;
 mod server;
-mod discord;
-mod env;
 mod storage;
-mod dsek;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
