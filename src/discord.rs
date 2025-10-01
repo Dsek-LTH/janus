@@ -80,7 +80,7 @@ pub fn generate_oauth_url(session: &Session) -> String {
         .add_param("redirect_uri", &redirect_uri)
         .add_param("response_type", "code")
         .add_param("state", &state)
-        .add_param("scope", "role_connections.write identify")
+        .add_param("scope", "identify+role_connections.write")
         .add_param("prompt", "consent");
 
     url.build()
@@ -155,7 +155,7 @@ pub async fn update_metadata(data: &web::Data<AppState>, user_id: &str) -> Resul
         env::var("DISCORD_CLIENT_ID")
     );
 
-    let res = reqwest::Client::new()
+    reqwest::Client::new()
         .put(endpoint)
         .json(&udata)
         .header("Authorization", format!("Bearer {}", oauth.access_token))
@@ -168,14 +168,4 @@ pub async fn update_metadata(data: &web::Data<AppState>, user_id: &str) -> Resul
     storage::store_discord_token(&data.db, user_id, oauth).await?;
 
     Ok(())
-    
-    // dbg!(res);
-
-    // if res.status().is_success() {
-    //     storage::store_discord_token(&data.db, user_id, oauth).await?;
-    //     Ok(())
-    // } else {
-    //     Err()
-    // }
-
 }

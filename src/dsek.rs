@@ -12,6 +12,7 @@ use base64::{
         general_purpose::{self},
         GeneralPurpose,
     },
+    prelude::BASE64_URL_SAFE,
     Engine,
 };
 use serde::{de::Error, Deserialize};
@@ -23,8 +24,6 @@ use crate::{env, server::from_server};
 #[derive(Deserialize, Debug)]
 pub struct DsekUserData {
     pub name: String,
-    #[serde(rename = "group_list")]
-    pub groups: Vec<String>,
     #[serde(rename = "preferred_username")]
     pub stil_id: String,
 }
@@ -57,12 +56,12 @@ pub fn generate_oauth_url(session: &Session) -> String {
 
     let mut url = URLBuilder::new();
     url.set_protocol("https")
-        .set_host("portal.dsek.se")
-        .add_route("realms/dsek/protocol/openid-connect/auth")
+        .set_host("auth.dsek.se")
+        .add_route("application/o/authorize/")
         .add_param("client_id", &client_id)
         .add_param("redirect_uri", &redirect_uri)
-        .add_param("response_type", "code") // "code id_token"?
-        .add_param("scope", "openid")
+        .add_param("response_type", "code")
+        .add_param("scope", "openid profile")
         .add_param("state", &state)
         .add_param("prompt", "consent");
 
@@ -75,18 +74,24 @@ pub async fn fetch_user_data(code: &str) -> Result<DsekUserData> {
         id_token: String,
     }
 
-    let endpoint = "https://portal.dsek.se/realms/dsek/protocol/openid-connect/token";
+    let token_endpoint = "https://auth.dsek.se/application/o/token/";
+    let credentials = BASE64_URL_SAFE.encode(format!(
+        "{}:{}",
+        env::var("DSEK_CLIENT_ID"),
+        env::var("DSEK_CLIENT_SECRET")
+    ));
 
     let mut data = HashMap::new();
 
-    data.insert("client_id", env::var("DSEK_CLIENT_ID"));
-    data.insert("client_secret", env::var("DSEK_CLIENT_SECRET"));
     data.insert("grant_type", "authorization_code".to_string());
     data.insert("code", code.to_string());
     data.insert("redirect_uri", env::var("DSEK_REDIRECT_URI"));
 
+    // returns a base64-encoded token containing user data
     let TokenResponse { id_token } = reqwest::Client::new()
-        .post(endpoint)
+        .post(token_endpoint)
+        .header("Accept", "application/json")
+        .header("Authorization", format!("Basic {}", credentials))
         .form(&data)
         .send()
         .await
@@ -95,7 +100,6 @@ pub async fn fetch_user_data(code: &str) -> Result<DsekUserData> {
         .await
         .map_err(from_server)?;
 
+    // parses the encoded token into actual data, see `FromStr for DsekUserData`
     Ok(id_token.parse()?)
-
-    // Ok(())
 }
