@@ -1,9 +1,11 @@
 use actix_web::Result;
-use sqlx::{Pool, Postgres};
+use sqlx::Connection;
+use sqlx::{PgConnection, Pool, Postgres};
 
 use crate::{
     discord::{DiscordOAuthCredentials, DiscordUserData},
     dsek::DsekUserData,
+    env::var,
     server::from_server,
 };
 
@@ -128,4 +130,67 @@ pub async fn fetch_discord_username(db: &Pool<Postgres>, discord_user_id: &str) 
     .map(|res| res.username)?;
 
     Ok(res)
+}
+
+pub async fn setup_db() -> Result<(), sqlx::Error> {
+    let mut conn = PgConnection::connect(&var("DATABASE_URL")).await?;
+    sqlx::query("DROP TABLE IF EXISTS connected_accounts;")
+        .execute(&mut conn)
+        .await?;
+    sqlx::query("DROP TABLE IF EXISTS discord_tokens;")
+        .execute(&mut conn)
+        .await?;
+    sqlx::query("DROP TABLE IF EXISTS authorized_discord_users;")
+        .execute(&mut conn)
+        .await?;
+    sqlx::query("DROP TABLE IF EXISTS authorized_dsek_users;")
+        .execute(&mut conn)
+        .await?;
+
+    sqlx::query(
+        r#"CREATE TABLE IF NOT EXISTS authorized_discord_users (
+            user_id         TEXT NOT NULL,
+            username        TEXT NOT NULL,
+            PRIMARY KEY (user_id)
+        );"#,
+    )
+    .execute(&mut conn)
+    .await?;
+
+    sqlx::query(
+        r#"CREATE TABLE IF NOT EXISTS authorized_dsek_users (
+            stil_id         TEXT NOT NULL,
+            name            TEXT NOT NULL,
+            PRIMARY KEY (stil_id)
+        );"#,
+    )
+    .execute(&mut conn)
+    .await?;
+
+    sqlx::query(
+        r#"CREATE TABLE IF NOT EXISTS discord_tokens (
+            user_id         TEXT NOT NULL,
+            access_token    TEXT NOT NULL,
+            refresh_token   TEXT NOT NULL,
+            expires_at      BIGINT NOT NULL,
+            PRIMARY KEY (user_id),
+            FOREIGN KEY (user_id) REFERENCES authorized_discord_users(user_id)
+        );"#,
+    )
+    .execute(&mut conn)
+    .await?;
+
+    sqlx::query(
+        r#"CREATE TABLE IF NOT EXISTS connected_accounts (
+            user_id         TEXT NOT NULL,
+            stil_id         TEXT NOT NULL,
+            PRIMARY KEY (stil_id),
+            FOREIGN KEY (user_id) REFERENCES authorized_discord_users(user_id),
+            FOREIGN KEY (stil_id) REFERENCES authorized_dsek_users(stil_id)
+        );"#,
+    )
+    .execute(&mut conn)
+    .await?;
+
+    Ok(())
 }
