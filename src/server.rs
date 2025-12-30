@@ -111,6 +111,7 @@ async fn dsek_oauth_callback(
 
 #[actix_web::main]
 pub async fn start() -> std::io::Result<()> {
+    println!("Starting server");
     let db_url = env::var("DATABASE_URL");
     let storage = PgPoolOptions::new()
         .max_connections(5)
@@ -138,7 +139,7 @@ pub async fn start() -> std::io::Result<()> {
             .service(discord_oauth_callback)
             .service(dsek_oauth_callback)
     })
-    .bind(("127.0.0.1", 3000))?
+    .bind(("0.0.0.0", 3000))?
     .run()
     .await
 }

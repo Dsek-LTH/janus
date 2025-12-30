@@ -2,11 +2,14 @@
 
 Service to link Discord accounts with [Dsek](https://dsek.se) accounts using [Linked Roles](https://support.discord.com/hc/en-us/articles/8063233404823-Connections-Linked-Roles-Community-Members)
 
-## Setup
+## Setup (with podman compose)
 
-1. Use Rust nightly
-2. Initialize sqlite database with `sqlite3 database.db < tables.sql`
-3. Populate the example.env file with info from your discord app and rename it to .env
+1. Copy example.env to .env and fill it in
+2. Configure the bot in Authentik and on the discord developer portal
+3. Run `podman run -it janus -r` to register the bot (this
+   configures the discord application. If this has already been done you can
+skip this step).
+4. Run `podman compose up` to get the database and the bot up and running.
 
 It is recommended to use [ngrok](https://ngrok.com) to properly forward traffic whilst testing.
 
@@ -76,4 +79,4 @@ sequenceDiagram
 
 - [ ] Better (read: existing) logging
 - [ ] Better error messages (probably using [anyhow](https://docs.rs/anyhow/latest/anyhow/)?)
-- [ ] SQLite -> Postgres
+- [x] SQLite -> Postgres

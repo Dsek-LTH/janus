@@ -1,0 +1,48 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    restart: on-failure
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    networks:
+      - backend
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  janus:
+    image: janus
+    container_name: janus
+    restart: on-failure:1
+    depends_on:
+      - postgres
+    environment:
+      DSEK_CLIENT_ID: ${DSEK_CLIENT_ID}
+      DSEK_CLIENT_SECRET: ${DSEK_CLIENT_SECRET}
+      DSEK_REDIRECT_URI: ${DSEK_REDIRECT_URI}
+
+      DISCORD_CLIENT_SECRET: ${DISCORD_CLIENT_SECRET}
+      DISCORD_REDIRECT_URI: ${DISCORD_REDIRECT_URI}
+      DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN}
+
+      COOKIE_SECRET: ${COOKIE_SECRET}
+      # DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}"
+      DATABASE_URL: "postgresql://cpu:rasa-pantern@postgres:5432/discord"
+
+    networks:
+      - backend
+    ports:
+      - "3000:3000"
+
+volumes:
+  pgdata:
+
+networks:
+  backend:
+
