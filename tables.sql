@@ -1,11 +1,11 @@
-PRAGMA foreign_keys = OFF;
+-- PRAGMA foreign_keys = OFF;
 
+DROP TABLE IF EXISTS connected_accounts;
+DROP TABLE IF EXISTS discord_tokens;
 DROP TABLE IF EXISTS authorized_discord_users;
 DROP TABLE IF EXISTS authorized_dsek_users;
-DROP TABLE IF EXISTS discord_tokens;
-DROP TABLE IF EXISTS connected_accounts;
 
-PRAGMA foreign_keys = ON;
+-- PRAGMA foreign_keys = ON;
 
 CREATE TABLE IF NOT EXISTS authorized_discord_users (
     user_id         TEXT NOT NULL,
@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS discord_tokens (
     user_id         TEXT NOT NULL,
     access_token    TEXT NOT NULL,
     refresh_token   TEXT NOT NULL,
-    expires_at      INTEGER NOT NULL,
+    expires_at      BIGINT NOT NULL,
     PRIMARY KEY (user_id),
     FOREIGN KEY (user_id) REFERENCES authorized_discord_users(user_id)
 );

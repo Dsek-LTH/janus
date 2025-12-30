@@ -13,7 +13,8 @@ use actix_web::{
     App, Error, HttpResponse, HttpServer, ResponseError, Result,
 };
 use serde::Deserialize;
-use sqlx::{Pool, Sqlite, SqlitePool};
+use sqlx::{Pool, Postgres};
+use sqlx::postgres::PgPoolOptions;
 
 /// Converts any error into a 500 Internal Server Error response.
 pub fn from_server<T: Debug + Display>(err: T) -> impl ResponseError {
@@ -46,7 +47,7 @@ struct OAuthReturn {
 }
 
 pub struct AppState {
-    pub db: Pool<Sqlite>,
+    pub db: Pool<Postgres>,
 }
 
 #[get("/")]
@@ -111,7 +112,9 @@ async fn dsek_oauth_callback(
 #[actix_web::main]
 pub async fn start() -> std::io::Result<()> {
     let db_url = env::var("DATABASE_URL");
-    let storage = SqlitePool::connect(&db_url)
+    let storage = PgPoolOptions::new()
+        .max_connections(5)
+        .connect(&db_url)
         .await
         .map_err(|_| std::io::ErrorKind::ConnectionRefused)?;
 

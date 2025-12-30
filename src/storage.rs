@@ -1,5 +1,5 @@
 use actix_web::Result;
-use sqlx::{Pool, Sqlite};
+use sqlx::{Pool, Postgres};
 
 use crate::{
     discord::{DiscordOAuthCredentials, DiscordUserData},
@@ -7,11 +7,11 @@ use crate::{
     server::from_server,
 };
 
-pub async fn fetch_dsek_username(db: &Pool<Sqlite>, user_id: &str) -> Result<String> {
+pub async fn fetch_dsek_username(db: &Pool<Postgres>, user_id: &str) -> Result<String> {
     let res = sqlx::query!(
         "SELECT stil_id
         FROM connected_accounts
-        WHERE user_id = ?",
+        WHERE user_id = $1",
         user_id
     )
     .fetch_one(db)
@@ -21,12 +21,12 @@ pub async fn fetch_dsek_username(db: &Pool<Sqlite>, user_id: &str) -> Result<Str
     Ok(res.stil_id)
 }
 
-pub async fn get_token(db: &Pool<Sqlite>, user_id: &str) -> Result<DiscordOAuthCredentials> {
+pub async fn get_token(db: &Pool<Postgres>, user_id: &str) -> Result<DiscordOAuthCredentials> {
     let res = sqlx::query_as!(
         DiscordOAuthCredentials,
         "SELECT access_token, refresh_token, expires_at 
         FROM discord_tokens 
-        WHERE user_id = ?",
+        WHERE user_id = $1",
         user_id
     )
     .fetch_one(db)
@@ -37,13 +37,18 @@ pub async fn get_token(db: &Pool<Sqlite>, user_id: &str) -> Result<DiscordOAuthC
 }
 
 pub async fn store_discord_token(
-    db: &Pool<Sqlite>,
+    db: &Pool<Postgres>,
     user_id: &str,
     oauth: DiscordOAuthCredentials,
 ) -> Result<()> {
     sqlx::query!(
-        "INSERT OR REPLACE INTO discord_tokens (user_id, access_token, refresh_token, expires_at) 
-        VALUES (?, ?, ?, ?)",
+        "INSERT INTO discord_tokens (user_id, access_token, refresh_token, expires_at) 
+        VALUES ($1, $2, $3, $4)
+        ON CONFLICT (user_id)
+        DO UPDATE SET
+        access_token = EXCLUDED.access_token,
+        refresh_token = EXCLUDED.refresh_token,
+        expires_at = EXCLUDED.expires_at",
         user_id,
         oauth.access_token,
         oauth.refresh_token,
@@ -56,10 +61,14 @@ pub async fn store_discord_token(
     Ok(())
 }
 
-pub async fn store_discord_user(db: &Pool<Sqlite>, user_data: &DiscordUserData) -> Result<()> {
+pub async fn store_discord_user(db: &Pool<Postgres>, user_data: &DiscordUserData) -> Result<()> {
     sqlx::query!(
-        "INSERT OR REPLACE INTO authorized_discord_users (user_id, username)
-        VALUES (?, ?)",
+        "INSERT INTO authorized_discord_users (user_id, username)
+        VALUES ($1, $2)
+        ON CONFLICT (user_id)
+        DO UPDATE SET
+        user_id = EXCLUDED.user_id,
+        username = EXCLUDED.username",
         user_data.user_id,
         user_data.username
     )
@@ -70,10 +79,14 @@ pub async fn store_discord_user(db: &Pool<Sqlite>, user_data: &DiscordUserData) 
     Ok(())
 }
 
-pub async fn store_dsek_user(db: &Pool<Sqlite>, user_data: &DsekUserData) -> Result<()> {
+pub async fn store_dsek_user(db: &Pool<Postgres>, user_data: &DsekUserData) -> Result<()> {
     sqlx::query!(
-        "INSERT OR REPLACE INTO authorized_dsek_users (stil_id, name)
-        VALUES (?, ?)",
+        "INSERT INTO authorized_dsek_users (stil_id, name)
+        VALUES ($1, $2)
+        ON CONFLICT (stil_id)
+        DO UPDATE SET
+        stil_id = EXCLUDED.stil_id,
+        name = EXCLUDED.name",
         user_data.stil_id,
         user_data.name
     )
@@ -84,10 +97,14 @@ pub async fn store_dsek_user(db: &Pool<Sqlite>, user_data: &DsekUserData) -> Res
     Ok(())
 }
 
-pub async fn connect_users(db: &Pool<Sqlite>, user_id: &str, stil_id: &str) -> Result<()> {
+pub async fn connect_users(db: &Pool<Postgres>, user_id: &str, stil_id: &str) -> Result<()> {
     sqlx::query!(
-        "INSERT OR REPLACE INTO connected_accounts (user_id, stil_id)
-        VALUES (?, ?)",
+        "INSERT INTO connected_accounts (user_id, stil_id)
+        VALUES ($1, $2)
+        ON CONFLICT (stil_id)
+        DO UPDATE SET
+        user_id = EXCLUDED.user_id,
+        stil_id = EXCLUDED.stil_id",
         user_id,
         stil_id
     )
@@ -98,11 +115,11 @@ pub async fn connect_users(db: &Pool<Sqlite>, user_id: &str, stil_id: &str) -> R
     Ok(())
 }
 
-pub async fn fetch_discord_username(db: &Pool<Sqlite>, discord_user_id: &str) -> Result<String> {
+pub async fn fetch_discord_username(db: &Pool<Postgres>, discord_user_id: &str) -> Result<String> {
     let res = sqlx::query!(
         "SELECT username
         FROM authorized_discord_users
-        WHERE user_id = ?",
+        WHERE user_id = $1",
         discord_user_id
     )
     .fetch_one(db)
