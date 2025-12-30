@@ -14,7 +14,8 @@ Service to link Discord accounts with [Dsek](https://dsek.se) accounts using [Li
 5. Run `podman compose up` to get the database and the bot up and running.
 
 It is recommended to use [ngrok](https://ngrok.com) to properly forward traffic
-whilst testing.
+whilst testing. Just make sure your local link is http sincey you probably
+don't have SSL certs yourself
 
 ## Sequence diagram
 
