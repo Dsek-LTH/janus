@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO authorized_discord_users (user_id, username)\n        VALUES ($1, $2)\n        ON CONFLICT (user_id)\n        DO UPDATE SET\n        user_id = EXCLUDED.user_id,\n        username = EXCLUDED.username",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "65a3c487c076426fb4742271142341e0c602a327076ebff9fd0bf8cddf6bf9dc"
+}

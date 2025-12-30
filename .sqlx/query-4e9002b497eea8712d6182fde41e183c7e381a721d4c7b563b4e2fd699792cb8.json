@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO discord_tokens (user_id, access_token, refresh_token, expires_at) \n        VALUES ($1, $2, $3, $4)\n        ON CONFLICT (user_id)\n        DO UPDATE SET\n        access_token = EXCLUDED.access_token,\n        refresh_token = EXCLUDED.refresh_token,\n        expires_at = EXCLUDED.expires_at",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Text",
+        "Int8"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "4e9002b497eea8712d6182fde41e183c7e381a721d4c7b563b4e2fd699792cb8"
+}

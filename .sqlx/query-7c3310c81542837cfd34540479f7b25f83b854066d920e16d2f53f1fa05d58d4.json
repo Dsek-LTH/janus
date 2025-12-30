@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO connected_accounts (user_id, stil_id)\n        VALUES ($1, $2)\n        ON CONFLICT (stil_id)\n        DO UPDATE SET\n        user_id = EXCLUDED.user_id,\n        stil_id = EXCLUDED.stil_id",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "7c3310c81542837cfd34540479f7b25f83b854066d920e16d2f53f1fa05d58d4"
+}

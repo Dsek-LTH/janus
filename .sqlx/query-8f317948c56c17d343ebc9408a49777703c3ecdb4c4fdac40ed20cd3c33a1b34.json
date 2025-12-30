@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO authorized_dsek_users (stil_id, name)\n        VALUES ($1, $2)\n        ON CONFLICT (stil_id)\n        DO UPDATE SET\n        stil_id = EXCLUDED.stil_id,\n        name = EXCLUDED.name",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "8f317948c56c17d343ebc9408a49777703c3ecdb4c4fdac40ed20cd3c33a1b34"
+}
